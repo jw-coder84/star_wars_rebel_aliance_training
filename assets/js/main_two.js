@@ -1,6 +1,20 @@
 
 const gamePlayArea = document.getElementById("gamePlayArea");
 
+let musicTrack = {};
+let blasterShots = 6;
+let totalTargets = 0;
+let remainingTargets = 0; 
+
+// ###### LOAD MUSIC ASSETS ######
+
+musicTrack = new Audio('assets/music/music-for-arcade-style-game-146875.mp3');
+musicTrack.play();
+musicTrack.loop = true;
+musicTrack.volume = 0.0;
+// gamePlayArea.appendChild(musicTrack);
+
+
 // ###### HELPER FUNCTIONS ######
 
 //simple function to return a random number within a range
@@ -11,9 +25,9 @@ function randomNumber(min, max) {
 
 // ###### ADD BACKGROUND ######
 
-function addBackground(){
+function addBackground(backgroundNo){
     const bg = document.createElement('img');
-    bg.src = "./assets/backgrounds/bg1.webp";
+    bg.src = `./assets/backgrounds/${backgroundNo}.webp`;
     bg.style.position = "absolute";
     bg.style.top = 0;
     bg.style.left = 0;
@@ -22,13 +36,72 @@ function addBackground(){
 
 }
 
-// ADD INTERFACE
+// ###### ADD LISTENERS ######
+
+gamePlayArea.addEventListener("click", pullTrigger)
+
+// ###### ADD INTERFACE ######
+
+// add music icon
+
+let musicIcon = document.createElement('img');
+musicIcon.src = "assets/sprites/musicon.webp";
+musicIcon.style.position = "absolute";
+musicIcon.setAttribute("id", "musicIcon");
+musicIcon.setAttribute("draggable", false);
+musicIcon.style.top = "2vh";
+musicIcon.style.left = "80vw";
+musicIcon.style.width = "5vw";
+musicIcon.style.height = "auto";
+musicIcon.style.zIndex = "1000";
+musicIcon.classList = "fadeIn";
+
+gamePlayArea.appendChild(musicIcon);
+
+// add score display
+
+function initScoreDisplay(){
+    let scoreDisplay = document.createElement('div');
+    scoreDisplay.setAttribute("id", "scoreDisplay");
+    scoreDisplay.setAttribute("draggable", false);
+    scoreDisplay.classList.add("interface");
+    
+    gamePlayArea.appendChild(scoreDisplay);
+}
+
+function updateScoreDisplay(){
+    let scoreDisplay = document.getElementById("scoreDisplay");
+
+    scoreDisplay.innerHTML = `<P>targets hit ${totalTargets - remainingTargets} / ${totalTargets} </P>`;
+
+}
 
 
+
+
+
+
+
+// ###### FIRE BLASTER #####
+
+function pullTrigger(){
+
+    // shots left?
+
+    // if no shots left play click
+
+    //else
+
+    new Audio("assets/sounds/Single_blaster_shot.mp3").play();
+}
 
 //narrator
 
+addProp(5, 5, "droid_face", 10, false);
+
 //blaster info
+
+
 
 //timer info
 function addTimer(maxSeconds) {
@@ -60,7 +133,14 @@ function setCountdown(maxSeconds) {
 //ADD SCENE PROPS
 
 
-
+/**
+   * Creates and places prop asset in play area
+   * @param  {int} relX Percentage of screen width from right to position prop
+   * @param  {int} relY Percentage of screen height from top to position prop
+   * @param  {String} type Name of prop to create
+   * @param  {String} scale  Percentage width scale of prop
+   * @param  {Boolean} Set to true if prop destructable.
+   */
 function addProp(relX, relY, type, scale, destructable){
 
     let imgPath = "";
@@ -69,8 +149,11 @@ function addProp(relX, relY, type, scale, destructable){
         case "box":
             imgPath = "./assets/sprites/rebel_supply_crate.webp";
             break;
-        case "drum":
-            imgPath = "./assets/sprites/drum.webp";
+        case "droid_face":
+            imgPath = "./assets/sprites/Droidface.webp";
+            break;
+        case "barrel":
+            imgPath = "./assets/sprites/barrel.webp";
             break;
         case "junk":
             imgPath = "./assets/sprites/junkpile.webp";
@@ -81,19 +164,26 @@ function addProp(relX, relY, type, scale, destructable){
         case "lamp2":
             imgPath = "./assets/sprites/lamp2.webp";
         break;
+        case "barrier":
+            imgPath = "./assets/sprites/barrier.webp";
+        break;
+        case "barrier2":
+            imgPath = "./assets/sprites/barrier2.webp";
+        break;
         default:
             imgPath = "./assets/sprites/rebel_supply_crate.webp";
         }
 
-    const asset = document.createElement('img');
+    let asset = document.createElement('img');
     asset.src = imgPath;
     asset.style.position = "absolute";
+    asset.setAttribute("draggable", false);
     asset.style.top = relY + "vh";
     asset.style.left = relX + "vw";
     asset.style.width = scale + "vw";
     asset.style.height = "auto";
     asset.style.zIndex = relY;
-    asset.classList = "dropIn";
+    asset.classList = "fadeIn";
     if(destructable){
         asset.addEventListener("click", destroyTarget);
     }
@@ -105,7 +195,7 @@ function addProp(relX, relY, type, scale, destructable){
 
 // ADD TARGTES
 
-function addTarget(relX, relY, type, scale, destructable, motionType, zIndex){
+function addTarget(relX, relY, type, scale, destructable, motionType, zIndex, aniDuration){
 
     let imgPath = "";
 
@@ -119,6 +209,9 @@ function addTarget(relX, relY, type, scale, destructable, motionType, zIndex){
         case "droid2":
             imgPath = "./assets/sprites/battledroid.webp";
         break;
+        case "droid3":
+            imgPath = "./assets/sprites/droid_biggun.webp";
+        break;
         case "vader":
             imgPath = "./assets/sprites/vader.webp";
         break;
@@ -129,31 +222,37 @@ function addTarget(relX, relY, type, scale, destructable, motionType, zIndex){
             imgPath = "./assets/sprites/StormTrooper.webp";
         }
 
-    const asset = document.createElement('img');
-    asset.src = imgPath;
-    asset.style.position = "absolute";
-    asset.style.top = relY + "vh";
-    asset.style.left = relX + "vw";
-    asset.style.width = scale + "vw";
-    asset.style.height = "auto";
-    if(zIndex){
-        asset.style.zIndex = zIndex;
+    let enemyTarget = document.createElement('img');
+    enemyTarget.src = imgPath;
+    enemyTarget.style.position = "absolute";
+    enemyTarget.setAttribute("draggable", false);
+    enemyTarget.style.top = relY + "vh";
+    enemyTarget.style.left = relX + "vw";
+    enemyTarget.style.width = scale + "vw";
+    enemyTarget.style.height = "auto";
+    if(zIndex && zIndex != 0){
+        enemyTarget.style.zIndex = zIndex;
     }
     else{
-        asset.style.zIndex = relY;
+        enemyTarget.style.zIndex = relY;
     }
-    
-    asset.classList = "dropIn target";
+    enemyTarget.classList = "fadeIn target";
+    enemyTarget.classList.add(`${type}`);
     
     if(destructable){
-        asset.addEventListener("click", destroyTarget);
+        enemyTarget.addEventListener("click", destroyTarget);
     }
 
     setTimeout(() => {
-        asset.classList.add(`${motionType}`)
+        enemyTarget.classList.add(`${motionType}`);
+        if(aniDuration){
+            enemyTarget.style.animationDuration = aniDuration + "ms";
+        }
     }, 1000);
     
-    gamePlayArea.appendChild(asset);
+    gamePlayArea.appendChild(enemyTarget);
+    totalTargets++;
+    remainingTargets++; 
 
 
 }
@@ -162,21 +261,26 @@ function addTarget(relX, relY, type, scale, destructable, motionType, zIndex){
 
 function destroyTarget(e){
 
-    target = e.target;
+    let hitTarget = e.target;
+    // need hit sound
     new Audio("assets/sounds/Single_blaster_shot.mp3").play();
-    target.removeEventListener("click", destroyTarget);
-    target.style.animationDelay = "0ms";
-    target.classList.remove("dropIn");
-    if(target.classList.contains("target")){
-        target.classList.add("destroyTarget2");
+    hitTarget.removeEventListener("click", destroyTarget);
+
+    if(hitTarget.classList.contains("trooper")){
+        new Audio("assets/sounds/trooperHit.mp3").play();
+    }
+
+    hitTarget.style.animationDelay = "0ms";
+    hitTarget.classList.remove("fadeIn");
+    if(hitTarget.classList.contains("target")){
+        hitTarget.classList.add("destroyTarget2");
     }
     else{
-        target.classList.add("destroyTarget");
+        hitTarget.classList.add("destroyTarget");
     }
     
-    
-
-
+    remainingTargets--;
+    updateScoreDisplay(); 
 }
 
 
@@ -206,7 +310,7 @@ function scatterAssets(count) {
         asset.style.width = randWidth + "vw";
         asset.style.height = "auto";
         asset.style.zIndex = 2000;
-        asset.classList = "dropIn goodEwok";
+        asset.classList = "fadeIn goodEwok";
         asset.addEventListener("click", destroyTarget);
         gamePlayArea.appendChild(asset);
 
@@ -242,7 +346,7 @@ function scatterBoxes(count) {
         asset.style.width = randWidth + "vw";
         asset.style.height = "auto";
         asset.style.zIndex = 3000;
-        asset.classList = "dropIn";
+        asset.classList = "fadeIn";
         asset.addEventListener("click", destroyTarget);
         gamePlayArea.appendChild(asset);
     }
@@ -252,11 +356,40 @@ function scatterBoxes(count) {
 
 // GAME START
 
-// Description:
-/* To destroy the target you must aim and shoot. */
-
-addBackground();
+addBackground("bg2");
 addTimer(45);
+initScoreDisplay();
+
 // scatterAssets(65);
 // scatterBoxes(15);
-addTarget(40 ,50, "trooper", 15, true, "dancing", 1);
+
+// front area
+addProp(70, 75, "box", 8 , true);
+addTarget(71, 74, "trooper", 5, true, "jumping", 0, 1550);
+addProp(15, 75, "box", 9 , true);
+addProp(80, 75, "box", 8, true);
+addTarget(81, 74, "trooper", 5, true, "jumping", 0, 1450);
+addTarget(15, 72, "droid2", 8, true, "evading", 0, 1300);
+
+//mid area
+addProp(40, 70, "box", 5, true);
+addTarget(43, 68, "ewok", 5, true, "dancing", 70);
+addProp(43, 72, "box", 6, true);
+addProp(46, 70, "box", 5, true);
+addProp(30, 65, "barrel", 8, true);
+addProp(60, 65, "barrel", 8, true);
+
+
+//addTarget(60, 62, "ewok", 6, true, "jumping",);
+
+//back area
+addProp(40, 50, "barrier", 15, true);
+addTarget(32, 45, "droid3", 8, true, "dodging",5 , 3500);
+addProp(26, 48, "box", 7, false);
+addProp(33, 48, "box", 7, false);
+addTarget(46, 50, "trooper", 5, true, "dodging", 15, 2600);
+addProp(65, 50, "box", 5, true);
+addTarget(65, 49, "trooper", 4, true, "dancing",0,300);
+
+
+updateScoreDisplay(); 
